@@ -1,0 +1,37 @@
+# OS / Editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Git intern in Unterordnern
+**/.git
+**/.git/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Env-Dateien
+.env
+.env.*
+!.env.example
+!.env.test.example
+!.env.dev.example
+
+# Node / Frontend
+node_modules/
+dist/
+build/
+coverage/
+
+# Symfony / PHP Backend
+backend/vendor/
+backend/var/
+backend/public/bundles/
+backend/public/assets/
+backend/assets/vendor/
+backend/.phpunit.cache/
+backend/phpunit.xml
