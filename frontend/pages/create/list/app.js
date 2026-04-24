@@ -161,9 +161,11 @@ function goBackToOverview() {
     window.location.href = '../../../index.html';
 }
 
-// Navigate to the article creation page.
+// Navigate to the article creation page and save current state.
 function openCreateArticlePage() {
-    window.location.href = '../article/index.html';
+    // Save the current selected articles to localStorage so we can restore them when we come back.
+    localStorage.setItem('selectedArticlesForList', JSON.stringify(state.selectedArticles));
+    window.location.href = '../article/index.html?returnTo=createList';
 }
 
 // Register the page events and load the initial article data.
@@ -194,6 +196,13 @@ async function init() {
             event.preventDefault();
             goBackToOverview();
         });
+    }
+
+    // Restore selected articles from localStorage if coming back from article creation.
+    const savedArticles = localStorage.getItem('selectedArticlesForList');
+    if (savedArticles) {
+        state.selectedArticles = JSON.parse(savedArticles);
+        localStorage.removeItem('selectedArticlesForList');
     }
 
     try {

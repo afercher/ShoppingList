@@ -83,17 +83,34 @@ async function handleCreateArticle() {
         });
 
         showFeedback('Article created successfully. Redirecting...');
+        
+        // Check if we should return to the create list page
+        const urlParams = new URLSearchParams(window.location.search);
+        const returnTo = urlParams.get('returnTo');
+        
         setTimeout(() => {
-            window.location.href = '../../../index.html';
+            if (returnTo === 'createList') {
+                window.location.href = '../list/index.html';
+            } else {
+                window.location.href = '../../../index.html';
+            }
         }, 1000);
     } catch (error) {
         showFeedback(error.message || 'Failed to create the article.', true);
     }
 }
 
-// Navigate back to the main page.
+// Navigate back based on where we came from.
 function goBackToOverview() {
-    window.location.href = '../../../index.html';
+    // Check if we came from the create list page
+    const urlParams = new URLSearchParams(window.location.search);
+    const returnTo = urlParams.get('returnTo');
+    
+    if (returnTo === 'createList') {
+        window.location.href = '../list/index.html';
+    } else {
+        window.location.href = '../../../index.html';
+    }
 }
 
 // Show the add department form and hide the add button.
