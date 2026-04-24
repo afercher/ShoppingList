@@ -11,8 +11,9 @@ use Symfony\Component\HttpFoundation\Request;
 
 class ShoppingListApiController extends AbstractController
 {
-
+    // Support both the legacy and the new route while the frontend moves to /api/lists.
     #[Route('/api/shoppingLists', methods: ['GET'])]
+    #[Route('/api/lists', methods: ['GET'])]
     public function getShoppingLists(ShoppingListService $service): JsonResponse{
         return $this->json($service->getAllLists());
     }
@@ -22,6 +23,7 @@ class ShoppingListApiController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
 
+        // Reject malformed payloads before creating a list.
         if (!$data || !isset($data['name'])) {
             return $this->json([
                 'error' => 'Invalid request body'
@@ -54,13 +56,14 @@ class ShoppingListApiController extends AbstractController
         ]);
 
         return $this->json([
-            'message' => 'Item hinzugefügt'
+            'message' => 'Item added'
         ]);
     }
 
     #[Route('/api/lists/{id}/items', methods: ['GET'])]
     public function getItems(int $id, Connection $connection): JsonResponse
     {
+        // Keep the response shape lightweight for the current frontend view.
         $sql = "
         SELECT
             a.name
@@ -104,6 +107,7 @@ class ShoppingListApiController extends AbstractController
     #[Route('/api/lists/{id}', methods: ['DELETE'])]
     public function deleteList(int $id, Connection $connection): JsonResponse
     {
+        // Delete dependent rows first to avoid orphaned join-table entries.
         $connection->delete('shopping_list_article', [
             'shopping_list_id' => $id
         ]);
@@ -112,7 +116,7 @@ class ShoppingListApiController extends AbstractController
             'id' => $id
         ]);
 
-        return $this->json(['message' => 'Liste gelöscht']);
+        return $this->json(['message' => 'List deleted']);
     }
 
     #[Route('/api/lists/{id}/items/{itemId}', methods: ['DELETE'])]
@@ -123,8 +127,7 @@ class ShoppingListApiController extends AbstractController
             'shopping_list_id' => $id
         ]);
 
-        return $this->json(['message' => 'Item gelöscht']);
+        return $this->json(['message' => 'Item deleted']);
     }
 
 }
-

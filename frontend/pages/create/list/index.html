@@ -2,23 +2,31 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create List</title>
-    <link rel="stylesheet" href="/frontend/style.cssstyle.css">
+    <link rel="stylesheet" href="../../../style.css">
 </head>
 <body>
 <div id="container">
     <h1>Create New List</h1>
 
-    <input type="text" id="listName" placeholder="List name">
-    <button class="createButton" onclick="createList()">Create List</button>
+    <label>List name
+        <input type="text" id="listName" placeholder="List name">
+    </label>
+    <div class="button-row">
+        <button id="submitListButton" class="createButton">Create List</button>
+        <button id="backButton" class="secondary-button" type="button">Back</button>
+    </div>
+
+    <p id="feedback" class="feedback" aria-live="polite"></p>
 
     <h2>Selected Articles</h2>
-    <div id="selectedArticles"></div>
+    <div id="selectedArticles" class="list-stack"></div>
 
     <h2>Categories</h2>
     <div class="list-container" id="articles"></div>
 
-    <script src="/frontend/pagesend/pages/create/list/app.js"></script>
+    <script src="app.js"></script>
 </div>
 </body>
 </html>

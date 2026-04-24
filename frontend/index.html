@@ -1,6 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shopping Lists</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -8,11 +10,34 @@
     <div id="container">
         <h1>Shopping Lists</h1>
 
-        <button class="createButton" onclick="createList()">Create New List</button>
+        <button id="createListButton" class="createButton">Create New List</button>
 
-        <div id="lists"></div>
+        <p id="feedback" class="feedback" aria-live="polite"></p>
 
-        <script src="app.js"></script>
+        <div id="layout" class="layout">
+            <section class="panel">
+                <h2>Available Lists</h2>
+                <div id="lists" class="list-stack"></div>
+            </section>
+
+            <section class="panel">
+                <h2 id="detailTitle">Select a list</h2>
+
+                <form id="addItemForm" class="inline-form hidden">
+                    <label for="articleSelect">Article</label>
+                    <select id="articleSelect" required></select>
+
+                    <label for="quantityInput">Quantity</label>
+                    <input id="quantityInput" type="number" min="1" value="1" required>
+
+                    <button type="submit">Add Item</button>
+                </form>
+
+                <div id="items" class="list-stack"></div>
+            </section>
+        </div>
+
     </div>
+    <script src="app.js"></script>
 </body>
 </html>

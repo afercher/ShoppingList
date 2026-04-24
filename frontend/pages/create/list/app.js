@@ -1,36 +1,61 @@
-const host = 'http://localhost:8000';
+const apiBaseUrl = 'http://localhost:8000';
 
-let allDepartments = {};
-let selectedArticles = [];
+// Keep the article selection state in one object to simplify rendering.
+const state = {
+    articlesByDepartment: {},
+    selectedArticles: []
+};
 
-// Load all articles from the backend and initialize the UI
-async function loadArticles() {
-    const response = await fetch(host + '/api/articles');
+// Cache the page elements that are used multiple times.
+const elements = {
+    listNameInput: document.getElementById('listName'),
+    submitListButton: document.getElementById('submitListButton'),
+    backButton: document.getElementById('backButton'),
+    feedback: document.getElementById('feedback'),
+    selectedArticles: document.getElementById('selectedArticles'),
+    articles: document.getElementById('articles')
+};
+
+function showFeedback(message, isError = false) {
+    elements.feedback.textContent = message;
+    elements.feedback.classList.toggle('error', isError);
+}
+
+// Reuse the same request handling pattern as the overview page.
+async function requestJson(url, options = {}) {
+    const response = await fetch(url, options);
 
     if (!response.ok) {
-        console.error('Failed to load articles');
-        return;
+        const message = await response.text();
+        throw new Error(message || 'Request failed');
     }
 
-    allDepartments = await response.json();
+    return response.json();
+}
 
+function createMessage(text) {
+    const paragraph = document.createElement('p');
+    paragraph.textContent = text;
+    return paragraph;
+}
+
+// Load all available articles from the backend before rendering the page.
+async function loadArticles() {
+    state.articlesByDepartment = await requestJson(`${apiBaseUrl}/api/articles`);
     renderSelectedArticles();
     renderAvailableArticles();
 }
 
-// Render the list of selected articles with a remove button for each
+// Render the current selection so users can review and remove items.
 function renderSelectedArticles() {
-    const selectedDiv = document.getElementById('selectedArticles');
-    selectedDiv.innerHTML = '';
+    elements.selectedArticles.innerHTML = '';
 
-    if (selectedArticles.length === 0) {
-        const emptyText = document.createElement('p');
-        emptyText.textContent = 'No articles selected yet.';
-        selectedDiv.appendChild(emptyText);
+    if (!state.selectedArticles.length) {
+        elements.selectedArticles.appendChild(createMessage('No articles selected yet.'));
         return;
     }
 
-    selectedArticles.forEach(article => {
+    state.selectedArticles.forEach((article) => {
         const row = document.createElement('div');
         row.classList.add('selected-article-row');
 
@@ -39,106 +64,114 @@ function renderSelectedArticles() {
         articleName.classList.add('selected-article-name');
 
         const removeButton = document.createElement('button');
-        removeButton.textContent = '🗑️';
+        removeButton.textContent = 'Remove';
         removeButton.classList.add('remove-button');
-        removeButton.addEventListener('click', () => {
-            removeArticle(article.article_id);
-        });
+        removeButton.addEventListener('click', () => removeArticle(article.article_id));
 
         row.appendChild(articleName);
         row.appendChild(removeButton);
-        selectedDiv.appendChild(row);
+        elements.selectedArticles.appendChild(row);
     });
 }
 
-// Render available articles grouped by department, excluding already selected ones
+// Only show articles that are not already part of the current selection.
 function renderAvailableArticles() {
-    const div = document.getElementById('articles');
-    div.innerHTML = '';
+    elements.articles.innerHTML = '';
 
-    for (const departmentName in allDepartments) {
-        const availableArticles = allDepartments[departmentName].filter(article => {
-            return !selectedArticles.some(selected => selected.article_id === article.article_id);
+    Object.entries(state.articlesByDepartment).forEach(([departmentName, articles]) => {
+        const availableArticles = articles.filter((article) => {
+            return !state.selectedArticles.some((selectedArticle) => selectedArticle.article_id === article.article_id);
         });
 
-        // Wenn in einer Kategorie nichts mehr übrig ist, gar nicht anzeigen
-        if (availableArticles.length === 0) {
-            continue;
+        // Skip empty categories to keep the page compact.
+        if (!availableArticles.length) {
+            return;
         }
 
         const departmentTitle = document.createElement('h3');
         departmentTitle.textContent = departmentName;
         departmentTitle.classList.add('department-title');
-        div.appendChild(departmentTitle);
+        elements.articles.appendChild(departmentTitle);
 
-        availableArticles.forEach(article => {
+        availableArticles.forEach((article) => {
             const articleButton = document.createElement('button');
             articleButton.textContent = article.article_name;
             articleButton.classList.add('article-button');
-
-            articleButton.addEventListener('click', () => {
-                addArticle(article);
-            });
-
-            div.appendChild(articleButton);
+            articleButton.addEventListener('click', () => addArticle(article));
+            elements.articles.appendChild(articleButton);
         });
-    }
+    });
 }
 
-// Add an article to the selected list and update the UI
+// Add an article once and immediately refresh both lists.
 function addArticle(article) {
-    const alreadySelected = selectedArticles.some(selected => selected.article_id === article.article_id);
+    const alreadySelected = state.selectedArticles.some((selectedArticle) => {
+        return selectedArticle.article_id === article.article_id;
+    });
 
     if (alreadySelected) {
         return;
     }
 
-    selectedArticles.push(article);
-
+    state.selectedArticles.push(article);
     renderSelectedArticles();
     renderAvailableArticles();
 }
 
-// Remove an article from the selected list and update the UI
+// Remove the selected article and show it again in the available list.
 function removeArticle(articleId) {
-    selectedArticles = selectedArticles.filter(article => article.article_id !== articleId);
-
+    state.selectedArticles = state.selectedArticles.filter((article) => article.article_id !== articleId);
     renderSelectedArticles();
     renderAvailableArticles();
 }
 
-// Create a new shopping list with the selected articles
-async function createList() {
-    const listName = document.getElementById('listName').value.trim();
+// Submit the new list name and the selected article IDs to the backend.
+async function handleCreateList() {
+    const listName = elements.listNameInput.value.trim();
 
     if (!listName) {
-        alert('Please enter a list name.');
+        showFeedback('Please enter a list name.', true);
         return;
     }
 
     const shoppingList = {
         name: listName,
-        articles: selectedArticles.map(article => article.article_id)
+        articles: state.selectedArticles.map((article) => article.article_id)
     };
 
-    // Send the shopping list to the backend
-    const response = await fetch(host + '/api/lists', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(shoppingList)
-    });
-
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Failed to create list:', errorText);
-        alert('Failed to create list');
+    try {
+        await requestJson(`${apiBaseUrl}/api/lists`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(shoppingList)
+        });
+    } catch (error) {
+        showFeedback(error.message || 'Failed to create the list.', true);
         return;
     }
 
-    // redirect to list overview page
-    window.location.href = '/index.html';
+    showFeedback('List created. Redirecting...');
+    window.location.href = '../../../index.html';
 }
 
-loadArticles();
+function goBackToOverview() {
+    window.location.href = '../../../index.html';
+}
+
+// Register the page events and load the initial article data.
+async function init() {
+    elements.submitListButton.addEventListener('click', async () => {
+        await handleCreateList();
+    });
+    elements.backButton.addEventListener('click', goBackToOverview);
+
+    try {
+        await loadArticles();
+    } catch (error) {
+        showFeedback(error.message || 'Failed to load articles.', true);
+    }
+}
+
+init();

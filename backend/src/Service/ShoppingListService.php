@@ -8,7 +8,7 @@ class ShoppingListService
 {
     public function __construct(private Connection $connection) {}
 
-    // Get all shopping lists with their id and name
+    // Return the stored shopping lists with the fields needed by the frontend.
     public function getAllLists(): array
     {
         return $this->connection->fetchAllAssociative(
@@ -16,33 +16,7 @@ class ShoppingListService
         );
     }
 
-    // Get all items of a shopping list grouped by department
-    public function getItemsByList(int $listId): array
-    {
-        $sql = "
-            SELECT
-                a.name AS article,
-                d.name AS department
-            FROM shopping_list sl
-            JOIN shopping_list_article sla ON sl.id = sla.shopping_list_id
-            JOIN article a ON sla.article_id = a.id
-            JOIN department d ON a.department_id = d.department_id
-            WHERE sl.id = ?
-        ";
-
-        $rows = $this->connection->fetchAllAssociative($sql, [$listId]);
-
-        // group items
-        $departments = [];
-
-        foreach ($rows as $row) {
-            $departments[$row['department']][] = $row['article'];
-        }
-
-        return $departments;
-    }
-
-    // Create a new shopping list and return its id
+    // Create the list row first and return its database ID.
     private function createList(string $name): int
     {
         $this->connection->insert('shopping_list', [
@@ -52,12 +26,13 @@ class ShoppingListService
         return $this->connection->lastInsertId();
     }
 
-    // Add an article to a shopping list
+    // Link one article to the shopping list in the join table.
     private function addArticleToList(int $listId, int $articleId): void{
 
         $this->connection->insert('shopping_list_article', ['shopping_list_id' => $listId, 'article_id' => $articleId]);
     }
 
+    // Create the list and attach the selected articles in one workflow.
     public function createNewList(string $name, array $articles): void{
         $id = $this->createList($name);
 
