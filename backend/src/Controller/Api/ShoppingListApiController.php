@@ -69,11 +69,13 @@ class ShoppingListApiController extends AbstractController
             sla.id as item_id,
             sla.article_id,
             a.name,
-            sla.quantity
+            sla.quantity,
+            d.name as department_name
         FROM shopping_list_article sla
         JOIN article a ON sla.article_id = a.id
+        JOIN department d ON a.department_id = d.department_id
         WHERE sla.shopping_list_id = ?
-        ORDER BY a.name ASC
+        ORDER BY d.name ASC, a.name ASC
     ";
 
         $items = $connection->fetchAllAssociative($sql, [$id]);

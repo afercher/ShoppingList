@@ -3,13 +3,16 @@ const apiBaseUrl = 'http://localhost:8000';
 // Keep the page state in one place so rendering stays predictable.
 const state = {
     lists: [],
-    selectedListId: null
+    selectedListId: null,
+    selectedListName: '',
+    selectedListItems: []
 };
 
 // Cache frequently used DOM elements once after the script loads.
 const elements = {
     createListButton: document.getElementById('createListButton'),
     createArticleButton: document.getElementById('createArticleButton'),
+    generatePdfButton: document.getElementById('generatePdfButton'),
     feedback: document.getElementById('feedback'),
     lists: document.getElementById('lists'),
     detailTitle: document.getElementById('detailTitle'),
@@ -85,16 +88,65 @@ function renderLists() {
 // Update the detail panel when a list is selected.
 async function selectList(listId, listName) {
     state.selectedListId = listId;
+    state.selectedListName = listName;
     elements.detailTitle.textContent = `List: ${listName}`;
     showFeedback('');
     await loadItems();
+
+    if (elements.generatePdfButton) {
+        elements.generatePdfButton.classList.remove('hidden');
+    }
 }
 
 // Return the detail area to its empty state when no list is active.
 function resetDetailPanel() {
     state.selectedListId = null;
+    state.selectedListName = '';
+    state.selectedListItems = [];
     elements.detailTitle.textContent = 'Select a list';
     elements.items.innerHTML = '';
+
+    if (elements.generatePdfButton) {
+        elements.generatePdfButton.classList.add('hidden');
+    }
+}
+
+function groupItemsByDepartment(items) {
+    return items.reduce((groups, item) => {
+        const departmentName = item.department_name || 'Uncategorized';
+
+        if (!groups[departmentName]) {
+            groups[departmentName] = [];
+        }
+
+        groups[departmentName].push(item);
+        return groups;
+    }, {});
+}
+
+function renderGroupedItems(items) {
+    elements.items.innerHTML = '';
+
+    if (!items.length) {
+        elements.items.appendChild(createMessage('No items in this list yet.'));
+        return;
+    }
+
+    const groupedItems = groupItemsByDepartment(items);
+
+    Object.entries(groupedItems).forEach(([departmentName, departmentItems]) => {
+        const departmentTitle = document.createElement('h3');
+        departmentTitle.className = 'department-title';
+        departmentTitle.textContent = departmentName;
+        elements.items.appendChild(departmentTitle);
+
+        departmentItems.forEach((item) => {
+            const row = document.createElement('div');
+            row.className = 'item-row';
+            row.textContent = item.quantity > 1 ? `${item.name} (x${item.quantity})` : item.name;
+            elements.items.appendChild(row);
+        });
+    });
 }
 
 // Load and render the items that belong to the currently selected list.
@@ -103,20 +155,68 @@ async function loadItems() {
         return;
     }
 
-    const items = await requestJson(`${apiBaseUrl}/api/lists/${state.selectedListId}/items`);
-    elements.items.innerHTML = '';
+    state.selectedListItems = await requestJson(`${apiBaseUrl}/api/lists/${state.selectedListId}/items`);
+    renderGroupedItems(state.selectedListItems);
+}
 
-    if (!items.length) {
-        elements.items.appendChild(createMessage('No items in this list yet.'));
+function escapeHtml(value) {
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function generateListPdf() {
+    if (!state.selectedListId) {
+        showFeedback('Please select a list first.', true);
         return;
     }
 
-    items.forEach((item) => {
-        const row = document.createElement('div');
-        row.className = 'item-row';
-        row.textContent = item.name;
-        elements.items.appendChild(row);
-    });
+    const groupedItems = groupItemsByDepartment(state.selectedListItems);
+    const categorySections = Object.entries(groupedItems)
+        .map(([departmentName, departmentItems]) => {
+            const rows = departmentItems
+                .map((item) => `<li>${escapeHtml(item.name)}${item.quantity > 1 ? ` (x${escapeHtml(item.quantity)})` : ''}</li>`)
+                .join('');
+
+            return `<h2>${escapeHtml(departmentName)}</h2><ul>${rows}</ul>`;
+        })
+        .join('');
+
+    const content = categorySections || '<p>No items in this list yet.</p>';
+    const popup = window.open('', '_blank');
+
+    if (!popup) {
+        showFeedback('Popup blocked. Please allow popups to generate the PDF.', true);
+        return;
+    }
+
+    popup.document.write(`
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>${escapeHtml(state.selectedListName || 'Shopping List')}</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 24px; }
+        h1 { margin-bottom: 6px; }
+        h2 { margin-top: 18px; margin-bottom: 6px; }
+        ul { margin-top: 0; }
+        li { margin: 4px 0; }
+    </style>
+</head>
+<body>
+    <h1>${escapeHtml(state.selectedListName || 'Shopping List')}</h1>
+    ${content}
+</body>
+</html>
+`);
+
+    popup.document.close();
+    popup.focus();
+    popup.print();
 }
 
 // Delete a list and reset the detail panel if it was open.
@@ -159,6 +259,12 @@ async function init() {
         console.warn('Create article button not found in the DOM. Skipping event registration.');
     } else {
         elements.createArticleButton.addEventListener('click', openCreateArticlePage);
+    }
+
+    if (!elements.generatePdfButton) {
+        console.warn('Generate PDF button not found in the DOM. Skipping event registration.');
+    } else {
+        elements.generatePdfButton.addEventListener('click', generateListPdf);
     }
 
     try {

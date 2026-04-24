@@ -135,6 +135,10 @@ button:hover {
     padding: 10px;
 }
 
+.detail-actions {
+    margin-bottom: 10px;
+}
+
 .inline-form {
     display: grid;
     grid-template-columns: 1fr;
