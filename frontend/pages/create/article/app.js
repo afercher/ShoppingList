@@ -84,13 +84,16 @@ async function handleCreateArticle() {
 
         showFeedback('Article created successfully. Redirecting...');
         
-        // Check if we should return to the create list page
+        // Check if we should return to the create list page or edit list page
         const urlParams = new URLSearchParams(window.location.search);
         const returnTo = urlParams.get('returnTo');
-        
+        const listId = urlParams.get('listId');
+
         setTimeout(() => {
             if (returnTo === 'createList') {
                 window.location.href = '../list/index.html';
+            } else if (returnTo === 'editList' && listId) {
+                window.location.href = `../../edit/list/index.html?id=${listId}`;
             } else {
                 window.location.href = '../../../index.html';
             }
@@ -102,12 +105,15 @@ async function handleCreateArticle() {
 
 // Navigate back based on where we came from.
 function goBackToOverview() {
-    // Check if we came from the create list page
+    // Check if we came from the create list page or edit list page
     const urlParams = new URLSearchParams(window.location.search);
     const returnTo = urlParams.get('returnTo');
-    
+    const listId = urlParams.get('listId');
+
     if (returnTo === 'createList') {
         window.location.href = '../list/index.html';
+    } else if (returnTo === 'editList' && listId) {
+        window.location.href = `../../edit/list/index.html?id=${listId}`;
     } else {
         window.location.href = '../../../index.html';
     }

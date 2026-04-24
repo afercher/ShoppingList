@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit List</title>
+    <link rel="stylesheet" href="../../../style.css">
+</head>
+<body>
+<div id="container">
+    <h1>Edit List</h1>
+
+    <label>List name
+        <input type="text" id="listName" placeholder="List name">
+    </label>
+
+    <div class="button-row">
+        <button id="submitListButton" class="createButton" type="button" style="flex: 1;">Save List</button>
+        <button id="backButton" class="secondary-button" type="button" style="flex: 1;">Back</button>
+    </div>
+
+    <p id="feedback" class="feedback" aria-live="polite"></p>
+
+    <h2>Selected Articles</h2>
+    <div id="selectedArticles" class="list-stack"></div>
+
+    <h2>Categories</h2>
+    <div class="list-container" id="articles"></div>
+
+    <div class="button-row" style="margin-top: 24px;">
+        <button id="createArticleButton" class="secondary-button" type="button" style="flex: 1;">Create New Article</button>
+    </div>
+
+    <script src="app.js"></script>
+</div>
+</body>
+</html>
+

@@ -69,12 +69,18 @@ function renderLists() {
         openButton.textContent = list.name;
         openButton.addEventListener('click', () => selectList(list.id, list.name));
 
+        const editButton = document.createElement('button');
+        editButton.className = 'edit-button';
+        editButton.textContent = 'Edit';
+        editButton.addEventListener('click', () => openEditListPage(list.id));
+
         const deleteButton = document.createElement('button');
         deleteButton.className = 'delete-button';
         deleteButton.textContent = 'Delete';
         deleteButton.addEventListener('click', () => handleDeleteList(list.id));
 
         row.appendChild(openButton);
+        row.appendChild(editButton);
         row.appendChild(deleteButton);
         elements.lists.appendChild(row);
     });
@@ -189,6 +195,12 @@ async function handleDeleteList(listId) {
 function openCreateListPage() {
     window.location.href = 'pages/create/list/index.html';
 }
+
+// Navigate to the edit list page.
+function openEditListPage(listId) {
+    window.location.href = `pages/edit/list/index.html?id=${listId}`;
+}
+
 
 // Navigate to the article creation page.
 function openCreateArticlePage() {

@@ -103,6 +103,17 @@ button:hover {
     background-color: #962d22;
 }
 
+.edit-button {
+    width: auto;
+    min-width: 70px;
+    background-color: #2196F3;
+    margin: 0;
+}
+
+.edit-button:hover {
+    background-color: #0b7dda;
+}
+
 .list-stack {
     display: grid;
     gap: 8px;

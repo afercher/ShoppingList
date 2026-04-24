@@ -63,13 +63,17 @@ class ShoppingListApiController extends AbstractController
     #[Route('/api/lists/{id}/items', methods: ['GET'])]
     public function getItems(int $id, Connection $connection): JsonResponse
     {
-        // Keep the response shape lightweight for the current frontend view.
+        // Return items with article_id so we can edit the list properly.
         $sql = "
         SELECT
-            a.name
+            sla.id as item_id,
+            sla.article_id,
+            a.name,
+            sla.quantity
         FROM shopping_list_article sla
         JOIN article a ON sla.article_id = a.id
         WHERE sla.shopping_list_id = ?
+        ORDER BY a.name ASC
     ";
 
         $items = $connection->fetchAllAssociative($sql, [$id]);
@@ -102,6 +106,32 @@ class ShoppingListApiController extends AbstractController
         );
 
         return $this->json(['message' => 'Updated']);
+    }
+
+    // Update a shopping list by replacing its articles.
+    #[Route('/api/lists/{id}', methods: ['PUT'])]
+    public function updateList(int $id, Request $request, ShoppingListService $service): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+
+        // Validate input.
+        if (!$data || !isset($data['name'], $data['articles'])) {
+            return $this->json([
+                'error' => 'Invalid request body. Required fields: name, articles'
+            ], 400);
+        }
+
+        $name = $data['name'];
+        $articles = $data['articles'];
+
+        $service->updateList($id, $name, $articles);
+
+        return $this->json([
+            'message' => 'List updated',
+            'id' => $id,
+            'name' => $name,
+            'articles' => $articles
+        ], 200);
     }
 
     #[Route('/api/lists/{id}', methods: ['DELETE'])]
