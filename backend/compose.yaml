@@ -1,5 +1,21 @@
 
 services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    working_dir: /app
+    environment:
+      DATABASE_URL: "postgresql://app:!ChangeMe!@database:5432/app?serverVersion=16&charset=utf8"
+      MAILER_DSN: "smtp://mailer:1025"
+      APP_ENV: prod
+      APP_DEBUG: 0
+      APP_SECRET: change-me
+      CORS_ALLOW_ORIGIN: "^https?://(localhost|127\\.0\\.0\\.1|host\\.docker\\.internal)(:[0-9]+)?$"
+    depends_on:
+      database:
+        condition: service_healthy
+
 ###> doctrine/doctrine-bundle ###
   database:
     image: postgres:${POSTGRES_VERSION:-16}-alpine
@@ -17,6 +33,12 @@ services:
       - database_data:/var/lib/postgresql/data:rw
       # You may use a bind-mounted host directory instead, so that it is harder to accidentally remove the volume and lose all your data!
       # - ./docker/db/data:/var/lib/postgresql/data:rw
+
+  mailer:
+    image: axllent/mailpit
+    ports:
+      - "1025:1025"
+      - "8025:8025"
 ###< doctrine/doctrine-bundle ###
 
 volumes:

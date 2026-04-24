@@ -191,14 +191,24 @@ function openCreateListPage() {
 
 // Wire up DOM events and load the initial data for the page.
 async function init() {
-    elements.createListButton.addEventListener('click', openCreateListPage);
-    elements.addItemForm.addEventListener('submit', async (event) => {
-        try {
-            await handleAddItem(event);
-        } catch (error) {
-            showFeedback(error.message || 'Failed to add item.', true);
-        }
-    });
+    // Verify elements exist before registering event listeners.
+    if (!elements.createListButton) {
+        console.warn('Create list button not found in the DOM. Skipping event registration.');
+    } else {
+        elements.createListButton.addEventListener('click', openCreateListPage);
+    }
+
+    if (!elements.addItemForm) {
+        console.warn('Add item form not found in the DOM. Skipping event registration.');
+    } else {
+        elements.addItemForm.addEventListener('submit', async (event) => {
+            try {
+                await handleAddItem(event);
+            } catch (error) {
+                showFeedback(error.message || 'Failed to add item.', true);
+            }
+        });
+    }
 
     try {
         await Promise.all([loadLists(), loadArticles()]);

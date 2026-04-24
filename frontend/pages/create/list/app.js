@@ -162,15 +162,29 @@ function goBackToOverview() {
 
 // Register the page events and load the initial article data.
 async function init() {
-    elements.submitListButton.addEventListener('click', async () => {
-        await handleCreateList();
-    });
-    elements.backButton.addEventListener('click', goBackToOverview);
+    // Safely register event listeners only if the elements were found.
+    if (!elements.submitListButton) {
+        console.warn('Submit list button not found in the DOM. Skipping event registration.');
+    } else {
+        elements.submitListButton.addEventListener('click', async (event) => {
+            event.preventDefault();
+            await handleCreateList();
+        });
+    }
+
+    if (!elements.backButton) {
+        console.warn('Back button not found in the DOM. Skipping event registration.');
+    } else {
+        elements.backButton.addEventListener('click', (event) => {
+            event.preventDefault();
+            goBackToOverview();
+        });
+    }
 
     try {
         await loadArticles();
     } catch (error) {
-        showFeedback(error.message || 'Failed to load articles.', true);
+        showFeedback(error.message || 'Failed to load the articles.', true);
     }
 }
 
