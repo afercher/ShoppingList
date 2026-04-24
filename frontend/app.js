@@ -3,8 +3,7 @@ const apiBaseUrl = 'http://localhost:8000';
 // Keep the page state in one place so rendering stays predictable.
 const state = {
     lists: [],
-    selectedListId: null,
-    articlesByDepartment: {}
+    selectedListId: null
 };
 
 // Cache frequently used DOM elements once after the script loads.
@@ -14,9 +13,6 @@ const elements = {
     feedback: document.getElementById('feedback'),
     lists: document.getElementById('lists'),
     detailTitle: document.getElementById('detailTitle'),
-    addItemForm: document.getElementById('addItemForm'),
-    articleSelect: document.getElementById('articleSelect'),
-    quantityInput: document.getElementById('quantityInput'),
     items: document.getElementById('items')
 };
 
@@ -86,36 +82,10 @@ function renderLists() {
     });
 }
 
-// Load article choices for the add-item form.
-async function loadArticles() {
-    state.articlesByDepartment = await requestJson(`${apiBaseUrl}/api/articles`);
-    renderArticleSelect();
-}
-
-// Group article options by department to match the backend response shape.
-function renderArticleSelect() {
-    elements.articleSelect.innerHTML = '';
-
-    Object.entries(state.articlesByDepartment).forEach(([department, articles]) => {
-        const group = document.createElement('optgroup');
-        group.label = department;
-
-        articles.forEach((article) => {
-            const option = document.createElement('option');
-            option.value = article.article_id;
-            option.textContent = article.article_name;
-            group.appendChild(option);
-        });
-
-        elements.articleSelect.appendChild(group);
-    });
-}
-
 // Update the detail panel when a list is selected.
 async function selectList(listId, listName) {
     state.selectedListId = listId;
     elements.detailTitle.textContent = `List: ${listName}`;
-    elements.addItemForm.classList.remove('hidden');
     showFeedback('');
     await loadItems();
 }
@@ -124,7 +94,6 @@ async function selectList(listId, listName) {
 function resetDetailPanel() {
     state.selectedListId = null;
     elements.detailTitle.textContent = 'Select a list';
-    elements.addItemForm.classList.add('hidden');
     elements.items.innerHTML = '';
 }
 
@@ -148,36 +117,6 @@ async function loadItems() {
         row.textContent = item.name;
         elements.items.appendChild(row);
     });
-}
-
-// Submit a new item for the selected list.
-async function handleAddItem(event) {
-    event.preventDefault();
-
-    if (!state.selectedListId) {
-        showFeedback('Please select a list first.', true);
-        return;
-    }
-
-    const articleId = Number(elements.articleSelect.value);
-    const quantity = Number(elements.quantityInput.value);
-
-    if (!articleId || quantity < 1) {
-        showFeedback('Please provide valid values.', true);
-        return;
-    }
-
-    await requestJson(`${apiBaseUrl}/api/lists/${state.selectedListId}/items`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ article_id: articleId, quantity })
-    });
-
-    elements.quantityInput.value = '1';
-    showFeedback('Item added.');
-    await loadItems();
 }
 
 // Delete a list and reset the detail panel if it was open.
@@ -222,20 +161,8 @@ async function init() {
         elements.createArticleButton.addEventListener('click', openCreateArticlePage);
     }
 
-    if (!elements.addItemForm) {
-        console.warn('Add item form not found in the DOM. Skipping event registration.');
-    } else {
-        elements.addItemForm.addEventListener('submit', async (event) => {
-            try {
-                await handleAddItem(event);
-            } catch (error) {
-                showFeedback(error.message || 'Failed to add item.', true);
-            }
-        });
-    }
-
     try {
-        await Promise.all([loadLists(), loadArticles()]);
+        await loadLists();
     } catch (error) {
         showFeedback(error.message || 'Failed to load data.', true);
     }
