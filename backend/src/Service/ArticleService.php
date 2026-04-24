@@ -59,4 +59,21 @@ class ArticleService{
         ];
     }
 
+    // Create a new department and return the created record.
+    public function createDepartment(string $name): array
+    {
+        $this->connection->insert('department', [
+            'name' => $name
+        ]);
+
+        // Get the last inserted ID from the PostgreSQL sequence
+        $result = $this->connection->executeQuery('SELECT lastval() as id')->fetchAssociative();
+        $departmentId = $result['id'];
+
+        return [
+            'id' => $departmentId,
+            'name' => $name
+        ];
+    }
+
 }

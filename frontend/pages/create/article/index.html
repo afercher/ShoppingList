@@ -25,9 +25,23 @@
 
             <div class="form-group">
                 <label for="departmentSelect">Department</label>
-                <select id="departmentSelect" required>
-                    <option value="">-- Select a department --</option>
-                </select>
+                <div style="display: flex; gap: 8px;">
+                    <select id="departmentSelect" required style="flex: 1;"></select>
+                    <button id="addDepartmentButton" class="secondary-button" type="button">Add New Department</button>
+                </div>
+            </div>
+
+            <div id="addDepartmentForm" class="form-group hidden">
+                <label for="newDepartmentName">New Department Name</label>
+                <input
+                    id="newDepartmentName"
+                    type="text"
+                    placeholder="e.g. Frozen Food, Health & Beauty"
+                >
+                <div style="display: flex; gap: 8px; margin-top: 8px;">
+                    <button id="submitDepartmentButton" class="createButton" type="button" style="flex: 1;">Create</button>
+                    <button id="cancelDepartmentButton" class="secondary-button" type="button" style="flex: 1;">Cancel</button>
+                </div>
             </div>
 
             <div class="button-row">
@@ -40,4 +54,3 @@
     <script src="app.js"></script>
 </body>
 </html>
-

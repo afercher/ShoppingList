@@ -21,6 +21,29 @@ class ArticleApiController extends AbstractController{
         return $this->json($service->getAllDepartments());
     }
 
+    // Create a new department.
+    #[Route('/api/departments', methods: ['POST'])]
+    public function createDepartment(Request $request, ArticleService $service): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+
+        // Validate that name is provided.
+        if (!$data || !isset($data['name'])) {
+            return $this->json([
+                'error' => 'Invalid request body. Required field: name'
+            ], 400);
+        }
+
+        $name = $data['name'];
+        $department = $service->createDepartment($name);
+
+        return $this->json([
+            'message' => 'Department created',
+            'id' => $department['id'],
+            'name' => $department['name']
+        ], 201);
+    }
+
     // Create a new article with a name and department.
     #[Route('/api/articles', methods: ['POST'])]
     public function createArticle(Request $request, ArticleService $service): JsonResponse
