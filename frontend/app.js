@@ -12,6 +12,7 @@ const state = {
 const elements = {
     createListButton: document.getElementById('createListButton'),
     createArticleButton: document.getElementById('createArticleButton'),
+    goShoppingButton: document.getElementById('goShoppingButton'),
     generatePdfButton: document.getElementById('generatePdfButton'),
     feedback: document.getElementById('feedback'),
     lists: document.getElementById('lists'),
@@ -96,6 +97,10 @@ async function selectList(listId, listName) {
     if (elements.generatePdfButton) {
         elements.generatePdfButton.classList.remove('hidden');
     }
+
+    if (elements.goShoppingButton) {
+        elements.goShoppingButton.classList.remove('hidden');
+    }
 }
 
 // Return the detail area to its empty state when no list is active.
@@ -108,6 +113,10 @@ function resetDetailPanel() {
 
     if (elements.generatePdfButton) {
         elements.generatePdfButton.classList.add('hidden');
+    }
+
+    if (elements.goShoppingButton) {
+        elements.goShoppingButton.classList.add('hidden');
     }
 }
 
@@ -246,6 +255,13 @@ function openCreateArticlePage() {
     window.location.href = 'pages/create/article/index.html';
 }
 
+// Navigate to the shopping page to mark items as done.
+function openShoppingPage() {
+    if (state.selectedListId) {
+        window.location.href = `pages/shopping/index.html?id=${state.selectedListId}`;
+    }
+}
+
 // Wire up DOM events and load the initial data for the page.
 async function init() {
     // Verify elements exist before registering event listeners.
@@ -265,6 +281,12 @@ async function init() {
         console.warn('Generate PDF button not found in the DOM. Skipping event registration.');
     } else {
         elements.generatePdfButton.addEventListener('click', generateListPdf);
+    }
+
+    if (!elements.goShoppingButton) {
+        console.warn('Go shopping button not found in the DOM. Skipping event registration.');
+    } else {
+        elements.goShoppingButton.addEventListener('click', openShoppingPage);
     }
 
     try {
