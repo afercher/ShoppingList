@@ -1,4 +1,4 @@
-const apiBaseUrl = 'http://localhost:8000';
+const apiBaseUrl = `${window.location.protocol}//${window.location.hostname}:8000`;
 
 // Manage form state for article creation.
 const state = {

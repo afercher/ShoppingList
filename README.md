@@ -61,8 +61,8 @@ python -m http.server 3000
 
 Dann im Browser:
 
-- Frontend: `http://localhost:3000`
-- API: `http://localhost:8000`
+- Frontend: `http://shoppinglist.localhost:3000`
+- API: `http://shoppinglist.localhost:8000`
 
 ## 1-Klick Start (Doppelklick)
 
@@ -78,7 +78,13 @@ Fuer den einfachen Start ohne manuelle Commands gibt es zwei Starter-Dateien im 
   - Docker Services (`backend`, `database`, `mailer`)
   - Datenbankschema (`backend/bin/init_schema.php`)
   - Frontend-Server auf Port `3000`
-  - Browser mit `http://localhost:3000`
+  - Browser mit `http://shoppinglist.localhost:3000`
+
+Alias-Hinweis:
+
+- Es wird bewusst `shoppinglist.localhost` genutzt (statt `localhost`).
+- Die Frontend-Skripte verwenden automatisch den aktuellen Browser-Host und sprechen die API auf Port `8000` an.
+- Falls du die App manuell auf `localhost:3000` oeffnest, funktioniert es ebenfalls weiter.
 
 ### Stop
 

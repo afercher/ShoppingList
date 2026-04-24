@@ -56,7 +56,7 @@ if (-not $frontendRunning) {
     Write-Host 'Frontend server is already running.' -ForegroundColor Yellow
 }
 Write-Host 'Opening app in browser...' -ForegroundColor Cyan
-Start-Process 'http://localhost:3000'
+Start-Process 'http://shoppinglist.localhost:3000'
 Write-Host ''
 Write-Host 'ShoppingList is running.' -ForegroundColor Green
 Write-Host 'Use StopShoppingList.bat to stop all services.' -ForegroundColor Green
