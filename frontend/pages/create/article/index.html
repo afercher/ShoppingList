@@ -25,8 +25,8 @@
 
             <div class="form-group">
                 <label for="departmentSelect">Department</label>
-                <div style="display: flex; gap: 8px;">
-                    <select id="departmentSelect" required style="flex: 1;"></select>
+                <div class="inline-split department-select-row">
+                    <select id="departmentSelect" class="grow" required></select>
                     <button id="addDepartmentButton" class="secondary-button" type="button">Add New Department</button>
                 </div>
             </div>
@@ -38,9 +38,9 @@
                     type="text"
                     placeholder="e.g. Frozen Food, Health & Beauty"
                 >
-                <div style="display: flex; gap: 8px; margin-top: 8px;">
-                    <button id="submitDepartmentButton" class="createButton" type="button" style="flex: 1;">Create</button>
-                    <button id="cancelDepartmentButton" class="secondary-button" type="button" style="flex: 1;">Cancel</button>
+                <div class="inline-split">
+                    <button id="submitDepartmentButton" class="createButton" type="button">Create</button>
+                    <button id="cancelDepartmentButton" class="secondary-button" type="button">Cancel</button>
                 </div>
             </div>
 

@@ -50,7 +50,7 @@ async function loadListData() {
         return;
     }
 
-    state.listId = parseInt(listId);
+    state.listId = parseInt(listId, 10);
 
     try {
         // Load items for this list
@@ -101,33 +101,32 @@ function renderItems() {
 
         departmentItems.forEach((item) => {
             const row = document.createElement('div');
-            row.style.display = 'flex';
-            row.style.alignItems = 'center';
-            row.style.padding = '10px';
-            row.style.background = '#white';
-            row.style.borderRadius = '6px';
-            row.style.marginBottom = '8px';
+            row.className = 'shopping-item-row';
 
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
             checkbox.id = `item-${item.item_id}`;
             checkbox.checked = state.checkedItems.has(item.item_id);
-            checkbox.style.marginRight = '10px';
-            checkbox.style.width = '18px';
-            checkbox.style.height = '18px';
+            checkbox.className = 'shopping-item-checkbox';
+
+            if (checkbox.checked) {
+                row.classList.add('done');
+            }
+
             checkbox.addEventListener('change', (e) => {
                 if (e.target.checked) {
                     state.checkedItems.add(item.item_id);
+                    row.classList.add('done');
                 } else {
                     state.checkedItems.delete(item.item_id);
+                    row.classList.remove('done');
                 }
             });
 
             const label = document.createElement('label');
             label.htmlFor = `item-${item.item_id}`;
+            label.className = 'shopping-item-label';
             label.textContent = item.name + (item.quantity > 1 ? ` (x${item.quantity})` : '');
-            label.style.cursor = 'pointer';
-            label.style.flex = '1';
 
             row.appendChild(checkbox);
             row.appendChild(label);
