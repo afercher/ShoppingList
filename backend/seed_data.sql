@@ -1,5 +1,5 @@
 -- Insert articles for each department
-INSERT INTO article (name, department_id) VALUES
+INSERT IGNORE INTO article (name, department_id) VALUES
   -- Vegetables (Gemüse)
   ('Carrots', 4),
   ('Broccoli', 4),
@@ -80,20 +80,18 @@ INSERT INTO article (name, department_id) VALUES
   ('Canned Tomatoes', 11),
   ('Canned Beans', 11),
   ('Peanut Butter', 11),
-  ('Honey', 11)
-ON CONFLICT DO NOTHING;
+  ('Honey', 11);
 
 -- Create some sample shopping lists
-INSERT INTO shopping_list (name) VALUES
+INSERT IGNORE INTO shopping_list (name) VALUES
   ('Weekly Groceries'),
   ('Party Supplies'),
   ('Breakfast Items'),
   ('Dinner Ingredients'),
-  ('Dessert Making')
-ON CONFLICT DO NOTHING;
+  ('Dessert Making');
 
 -- Add items to lists
-INSERT INTO shopping_list_article (shopping_list_id, article_id, quantity) VALUES
+INSERT IGNORE INTO shopping_list_article (shopping_list_id, article_id, quantity) VALUES
   -- Weekly Groceries (List 1)
   (1, 11, 5),    -- Carrots
   (1, 12, 2),    -- Broccoli
@@ -134,6 +132,5 @@ INSERT INTO shopping_list_article (shopping_list_id, article_id, quantity) VALUE
   (5, 37, 1),    -- Eggs
   (5, 71, 1),    -- Flour
   (5, 72, 1),    -- Sugar
-  (5, 75, 1)     -- Honey
-ON CONFLICT DO NOTHING;
+  (5, 75, 1);    -- Honey
 

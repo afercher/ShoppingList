@@ -2,7 +2,7 @@
 DELETE FROM shopping_list_article;
 
 -- Add items to lists with correct IDs
-INSERT INTO shopping_list_article (shopping_list_id, article_id, quantity) VALUES
+INSERT IGNORE INTO shopping_list_article (shopping_list_id, article_id, quantity) VALUES
   -- Weekly Groceries (List 2)
   (2, 5, 5),     -- Carrots
   (2, 6, 2),     -- Broccoli
@@ -33,11 +33,10 @@ INSERT INTO shopping_list_article (shopping_list_id, article_id, quantity) VALUE
   -- Dessert Making (List 6)
   (6, 1, 1),     -- Apfel
   (6, 11, 1),    -- Eggs
-  (6, 3, 1)      -- Milch
-ON CONFLICT DO NOTHING;
+  (6, 3, 1);     -- Milch
 
 -- Show the result
-SELECT COUNT(*) as "Total Items Added" FROM shopping_list_article;
-SELECT COUNT(*) as "Total Articles" FROM article;
-SELECT COUNT(*) as "Total Lists" FROM shopping_list;
+SELECT COUNT(*) AS total_items_added FROM shopping_list_article;
+SELECT COUNT(*) AS total_articles FROM article;
+SELECT COUNT(*) AS total_lists FROM shopping_list;
 

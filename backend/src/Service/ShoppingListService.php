@@ -33,12 +33,14 @@ class ShoppingListService
     }
 
     // Create the list and attach the selected articles in one workflow.
-    public function createNewList(string $name, array $articles): void{
+    public function createNewList(string $name, array $articles): int{
         $id = $this->createList($name);
 
         foreach ($articles as $articleId) {
             $this->addArticleToList($id, (int) $articleId);
         }
+
+        return $id;
     }
 
     // Update an existing list with new articles.

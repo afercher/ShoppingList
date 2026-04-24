@@ -66,9 +66,7 @@ class ArticleService{
             'name' => $name
         ]);
 
-        // Get the last inserted ID from the PostgreSQL sequence
-        $result = $this->connection->executeQuery('SELECT lastval() as id')->fetchAssociative();
-        $departmentId = $result['id'];
+        $departmentId = $this->connection->lastInsertId();
 
         return [
             'id' => $departmentId,

@@ -11,13 +11,15 @@ use Symfony\Component\HttpFoundation\Request;
 
 class ShoppingListApiController extends AbstractController
 {
-    // Support both the legacy and the new route while the frontend moves to /api/lists.
+    // Support both required routes (/lists) and existing frontend routes (/api/lists).
+    #[Route('/lists', methods: ['GET'])]
     #[Route('/api/shoppingLists', methods: ['GET'])]
     #[Route('/api/lists', methods: ['GET'])]
     public function getShoppingLists(ShoppingListService $service): JsonResponse{
         return $this->json($service->getAllLists());
     }
 
+    #[Route('/lists', methods: ['POST'])]
     #[Route('/api/lists', methods: ['POST'])]
     public function createList(Request $request, ShoppingListService $service): JsonResponse
     {
@@ -33,33 +35,54 @@ class ShoppingListApiController extends AbstractController
         $name = $data['name'];
         $articles = $data['articles'] ?? [];
 
-        $service->createNewList($name, $articles);
+        $id = $service->createNewList($name, $articles);
 
         return $this->json([
+            'id' => $id,
             'name' => $name,
             'articles' => $articles
         ], 201);
     }
 
+    #[Route('/lists/{id}/item', methods: ['POST'])]
+    #[Route('/lists/{id}/items', methods: ['POST'])]
+    #[Route('/api/lists/{id}/item', methods: ['POST'])]
     #[Route('/api/lists/{id}/items', methods: ['POST'])]
     public function addItem(int $id, Request $request, Connection $connection): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
 
-        $articleId = $data['article_id'];
-        $quantity = $data['quantity'] ?? 1;
+        if (!$data || !isset($data['article_id'])) {
+            return $this->json(['error' => 'Invalid request body. Required field: article_id'], 400);
+        }
 
-        $connection->insert('shopping_list_article', [
-            'shopping_list_id' => $id,
-            'article_id' => $articleId,
-            'quantity' => $quantity
-        ]);
+        $articleId = (int) $data['article_id'];
+        $quantity = max(1, (int) ($data['quantity'] ?? 1));
 
-        return $this->json([
-            'message' => 'Item added'
-        ]);
+        $existing = $connection->fetchAssociative(
+            'SELECT id, quantity FROM shopping_list_article WHERE shopping_list_id = ? AND article_id = ?',
+            [$id, $articleId]
+        );
+
+        if ($existing) {
+            $connection->update(
+                'shopping_list_article',
+                ['quantity' => ((int) $existing['quantity']) + $quantity],
+                ['id' => (int) $existing['id'], 'shopping_list_id' => $id]
+            );
+        } else {
+            $connection->insert('shopping_list_article', [
+                'shopping_list_id' => $id,
+                'article_id' => $articleId,
+                'quantity' => $quantity
+            ]);
+        }
+
+        // Requirement: return the updated shopping list after adding an item.
+        return $this->json($this->fetchListWithItems($connection, $id));
     }
 
+    #[Route('/lists/{id}/items', methods: ['GET'])]
     #[Route('/api/lists/{id}/items', methods: ['GET'])]
     public function getItems(int $id, Connection $connection): JsonResponse
     {
@@ -83,21 +106,43 @@ class ShoppingListApiController extends AbstractController
         return $this->json($items);
     }
 
+    #[Route('/lists/{id}/items/{itemId}', methods: ['GET'])]
     #[Route('/api/lists/{id}/items/{itemId}', methods: ['GET'])]
     public function getItem(int $id, int $itemId, Connection $connection): JsonResponse
     {
         $item = $connection->fetchAssociative(
-            "SELECT * FROM shopping_list_article WHERE id = ? AND shopping_list_id = ?",
+            "
+                SELECT
+                    sla.id AS item_id,
+                    sla.shopping_list_id,
+                    sla.article_id,
+                    a.name,
+                    sla.quantity,
+                    d.name AS department_name
+                FROM shopping_list_article sla
+                JOIN article a ON sla.article_id = a.id
+                JOIN department d ON a.department_id = d.department_id
+                WHERE sla.id = ? AND sla.shopping_list_id = ?
+            ",
             [$itemId, $id]
         );
+
+        if (!$item) {
+            return $this->json(['error' => 'Item not found'], 404);
+        }
 
         return $this->json($item);
     }
 
+    #[Route('/lists/{id}/items/{itemId}', methods: ['PUT'])]
     #[Route('/api/lists/{id}/items/{itemId}', methods: ['PUT'])]
     public function updateItem(int $id, int $itemId, Request $request, Connection $connection): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
+
+        if (!$data || !isset($data['quantity'])) {
+            return $this->json(['error' => 'Invalid request body. Required field: quantity'], 400);
+        }
 
         $quantity = $data['quantity'];
 
@@ -111,6 +156,7 @@ class ShoppingListApiController extends AbstractController
     }
 
     // Update a shopping list by replacing its articles.
+    #[Route('/lists/{id}', methods: ['PUT'])]
     #[Route('/api/lists/{id}', methods: ['PUT'])]
     public function updateList(int $id, Request $request, ShoppingListService $service): JsonResponse
     {
@@ -136,6 +182,7 @@ class ShoppingListApiController extends AbstractController
         ], 200);
     }
 
+    #[Route('/lists/{id}', methods: ['DELETE'])]
     #[Route('/api/lists/{id}', methods: ['DELETE'])]
     public function deleteList(int $id, Connection $connection): JsonResponse
     {
@@ -151,6 +198,7 @@ class ShoppingListApiController extends AbstractController
         return $this->json(['message' => 'List deleted']);
     }
 
+    #[Route('/lists/{id}/items/{itemId}', methods: ['DELETE'])]
     #[Route('/api/lists/{id}/items/{itemId}', methods: ['DELETE'])]
     public function deleteItem(int $id, int $itemId, Connection $connection): JsonResponse
     {
@@ -160,6 +208,38 @@ class ShoppingListApiController extends AbstractController
         ]);
 
         return $this->json(['message' => 'Item deleted']);
+    }
+
+    private function fetchListWithItems(Connection $connection, int $listId): array
+    {
+        $list = $connection->fetchAssociative('SELECT id, name FROM shopping_list WHERE id = ?', [$listId]);
+
+        if (!$list) {
+            return ['id' => $listId, 'name' => null, 'items' => []];
+        }
+
+        $items = $connection->fetchAllAssociative(
+            "
+                SELECT
+                    sla.id AS item_id,
+                    sla.article_id,
+                    a.name,
+                    sla.quantity,
+                    d.name AS department_name
+                FROM shopping_list_article sla
+                JOIN article a ON sla.article_id = a.id
+                JOIN department d ON a.department_id = d.department_id
+                WHERE sla.shopping_list_id = ?
+                ORDER BY d.name ASC, a.name ASC
+            ",
+            [$listId]
+        );
+
+        return [
+            'id' => (int) $list['id'],
+            'name' => $list['name'],
+            'items' => $items
+        ];
     }
 
 }

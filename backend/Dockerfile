@@ -1,11 +1,7 @@
 FROM php:8.2-cli-alpine
 
-# Install required system dependencies
-RUN apk add --no-cache \
-    postgresql-dev
-
 # Install PHP extensions
-RUN docker-php-ext-install pdo pdo_pgsql opcache
+RUN docker-php-ext-install pdo pdo_mysql opcache
 
 # Improve local API latency when using the PHP built-in server.
 RUN printf "%s\n" \
