@@ -31,4 +31,32 @@ class ArticleService{
         return $departments;
     }
 
+    // Get all departments for the article creation form.
+    public function getAllDepartments(): array
+    {
+        return $this->connection->fetchAllAssociative('
+            SELECT
+                department_id as id,
+                name
+            FROM department
+            ORDER BY name ASC');
+    }
+
+    // Create a new article and return the created record.
+    public function createArticle(string $name, int $departmentId): array
+    {
+        $this->connection->insert('article', [
+            'name' => $name,
+            'department_id' => $departmentId
+        ]);
+
+        $articleId = $this->connection->lastInsertId();
+
+        return [
+            'id' => $articleId,
+            'name' => $name,
+            'department_id' => $departmentId
+        ];
+    }
+
 }

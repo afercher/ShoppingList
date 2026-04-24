@@ -10,6 +10,7 @@ const state = {
 // Cache frequently used DOM elements once after the script loads.
 const elements = {
     createListButton: document.getElementById('createListButton'),
+    createArticleButton: document.getElementById('createArticleButton'),
     feedback: document.getElementById('feedback'),
     lists: document.getElementById('lists'),
     detailTitle: document.getElementById('detailTitle'),
@@ -189,6 +190,11 @@ function openCreateListPage() {
     window.location.href = 'pages/create/list/index.html';
 }
 
+// Navigate to the article creation page.
+function openCreateArticlePage() {
+    window.location.href = 'pages/create/article/index.html';
+}
+
 // Wire up DOM events and load the initial data for the page.
 async function init() {
     // Verify elements exist before registering event listeners.
@@ -196,6 +202,12 @@ async function init() {
         console.warn('Create list button not found in the DOM. Skipping event registration.');
     } else {
         elements.createListButton.addEventListener('click', openCreateListPage);
+    }
+
+    if (!elements.createArticleButton) {
+        console.warn('Create article button not found in the DOM. Skipping event registration.');
+    } else {
+        elements.createArticleButton.addEventListener('click', openCreateArticlePage);
     }
 
     if (!elements.addItemForm) {

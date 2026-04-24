@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create New Article</title>
+    <link rel="stylesheet" href="../../../style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Create New Article</h1>
+
+        <div id="feedback" class="feedback"></div>
+
+        <form id="articleForm" class="form">
+            <div class="form-group">
+                <label for="articleName">Article Name</label>
+                <input
+                    id="articleName"
+                    type="text"
+                    placeholder="e.g. Tomatoes, Milk, Bread"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="departmentSelect">Department</label>
+                <select id="departmentSelect" required>
+                    <option value="">-- Select a department --</option>
+                </select>
+            </div>
+
+            <div class="button-row">
+                <button id="submitArticleButton" class="createButton" type="button">Create Article</button>
+                <button id="backButton" class="secondary-button" type="button">Back</button>
+            </div>
+        </form>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
+

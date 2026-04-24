@@ -10,6 +10,7 @@ const state = {
 const elements = {
     listNameInput: document.getElementById('listName'),
     submitListButton: document.getElementById('submitListButton'),
+    createArticleButton: document.getElementById('createArticleButton'),
     backButton: document.getElementById('backButton'),
     feedback: document.getElementById('feedback'),
     selectedArticles: document.getElementById('selectedArticles'),
@@ -160,6 +161,11 @@ function goBackToOverview() {
     window.location.href = '../../../index.html';
 }
 
+// Navigate to the article creation page.
+function openCreateArticlePage() {
+    window.location.href = '../article/index.html';
+}
+
 // Register the page events and load the initial article data.
 async function init() {
     // Safely register event listeners only if the elements were found.
@@ -169,6 +175,15 @@ async function init() {
         elements.submitListButton.addEventListener('click', async (event) => {
             event.preventDefault();
             await handleCreateList();
+        });
+    }
+
+    if (!elements.createArticleButton) {
+        console.warn('Create article button not found in the DOM. Skipping event registration.');
+    } else {
+        elements.createArticleButton.addEventListener('click', (event) => {
+            event.preventDefault();
+            openCreateArticlePage();
         });
     }
 
