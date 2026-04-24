@@ -25,11 +25,29 @@ function showFeedback(message, isError = false) {
 
 // Wrap fetch so every request shares the same JSON/error handling.
 async function requestJson(url, options = {}) {
-    const response = await fetch(url, options);
+    let response;
+    try {
+        response = await fetch(url, options);
+    } catch (error) {
+        const message = String(error.message || '');
+        const isNetworkError = message.includes('Failed to fetch') || message.includes('NetworkError') || message.includes('ERR_CONNECTION_REFUSED');
+
+        if (isNetworkError) {
+            throw new Error('Cannot connect to backend. Please start backend and try again.');
+        }
+
+        throw error;
+    }
 
     if (!response.ok) {
-        const message = await response.text();
-        throw new Error(message || 'Request failed');
+        const rawMessage = await response.text();
+        const isHtmlError = rawMessage && rawMessage.toLowerCase().includes('<html');
+
+        if (isHtmlError || response.status >= 500) {
+            throw new Error('Backend error. Please check if the backend is running.');
+        }
+
+        throw new Error(rawMessage || `Request failed (${response.status})`);
     }
 
     return response.json();
